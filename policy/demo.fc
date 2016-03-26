@@ -1,0 +1,5 @@
+/usr/bin/demo				gen_context(system_u:object_r:demo_exec_t,s0)
+
+/usr/local/demo(/.*)?			gen_context(system_u:object_r:demo_t,s0)
+
+/etc/demo				gen_context(system_u:object_r:demo_etc_t,s0)

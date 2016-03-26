@@ -1,0 +1,53 @@
+#/bin/bash
+
+## This is a deliberately simple and extremely insecure service
+
+# check config file path is provided
+if [ ! -e "$1" ]; then
+
+	echo "Please provide valid config file path."
+	exit 1
+
+else
+
+	CONFIG_FILE=$1
+
+fi
+
+echo "$0 running as `id -Z | awk -F ':' '{print $3}'` domain on kernel `awk '{print $3}' /proc/version`"
+
+# read the config from filesystem
+echo "hit enter to read config"
+read
+PORT=`awk '/PORT/{print $2}' $CONFIG_FILE`
+LOG_FILE=`awk '/LOG_FILE/{print $2}' $CONFIG_FILE`
+TMP_FILE=`awk '/TMP_FILE/{print $2}' $CONFIG_FILE`
+STORE_DIR=`awk '/STORE_DIR/{print $2}' $CONFIG_FILE`
+COUNT=`awk '/COUNT/{print $2}' $CONFIG_FILE`
+
+# initialise loop counter
+COUNTER=0
+
+while [ $COUNTER -lt $COUNT ]; do
+
+	echo "listening on socket"
+	COMMAND=`/usr/bin/nc -l $PORT`
+
+	echo "commmand $COUNTER received"
+
+	echo "logging command"
+	echo "$COMMAND" >> $LOG_FILE
+
+	echo "executing command"
+	$COMMAND > $TMP_FILE.$COUNTER
+
+	# increment counter
+	COUNTER=$(($COUNTER +1 ))
+
+done
+
+echo "making store dir if it doesn't exist"
+mkdir -p $STORE_DIR
+
+echo "moving output files to store"
+mv $TMP_FILE.* $STORE_DIR

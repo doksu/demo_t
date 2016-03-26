@@ -1,0 +1,80 @@
+policy_module(demo, 1.8)
+
+require {
+	type unconfined_t;
+	role unconfined_r;
+	type tmp_t;
+	type shell_exec_t;
+	type tmp_t;
+}
+
+# create a type for the process
+type demo_t;
+files_type(demo_t)
+
+#permissive demo_t;
+
+# create a type for the executable
+type demo_exec_t;
+
+type_transition unconfined_t demo_exec_t : process demo_t;
+role unconfined_r types demo_t;
+allow unconfined_t demo_t:process transition;
+
+#userdom_user_application_domain(demo_t, demo_exec_t)
+#application_domain(demo_t, demo_exec_t)
+
+init_daemon_domain(demo_t, demo_exec_t)
+
+#type demo_initrc_exec_t;
+#init_script_file(demo_initrc_exec_t)
+
+type demo_etc_t;
+files_config_file(demo_etc_t)
+allow demo_t demo_etc_t:file read_file_perms;
+files_search_etc(demo_t)
+
+# create a type for the temp files
+type demo_tmp_t;
+
+# assign the temp file attribute to the type
+files_tmp_file(demo_tmp_t)
+
+type demo_log_t;
+logging_log_file(demo_log_t)
+allow demo_t demo_log_t:file { create_file_perms append_file_perms };
+logging_log_filetrans(demo_t, demo_log_t, file)
+
+
+
+allow demo_t self:process { fork signal_perms setrlimit execmem };
+allow demo_t self:fifo_file manage_fifo_file_perms;
+allow demo_t self:unix_stream_socket { create_stream_socket_perms sendto recvfrom };
+allow demo_t self:unix_dgram_socket { connected_stream_socket_perms sendto recvfrom };
+allow demo_t self:netlink_route_socket { bind create getattr nlmsg_read };
+allow demo_t self:dir { manage_dir_perms };
+allow demo_t self:file { manage_file_perms };
+allow demo_t self:capability { sys_resource dac_override sys_ptrace kill };
+
+allow demo_t self:tcp_socket create_stream_socket_perms;
+corenet_tcp_sendrecv_generic_if(demo_t)
+corenet_tcp_sendrecv_generic_node(demo_t)
+corenet_tcp_sendrecv_all_ports(demo_t)
+corenet_tcp_bind_generic_node(demo_t)
+corenet_tcp_bind_all_ports(demo_t)
+corenet_tcp_connect_all_ports(demo_t)
+
+kernel_read_system_state(demo_t)
+
+corecmd_exec_bin(demo_t)
+corecmd_exec_shell(demo_t)
+
+miscfiles_read_localization(demo_t)
+
+allow demo_t tmp_t:dir { write read add_name remove_name };
+
+allow demo_t tmp_t:file { write rename create open };
+
+allow demo_t shell_exec_t:file entrypoint;
+
+allow demo_t tmp_t:file unlink;

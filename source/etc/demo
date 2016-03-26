@@ -1,0 +1,5 @@
+PORT 514
+LOG_FILE /var/log/demo
+TMP_FILE /tmp/demo
+STORE_DIR /usr/local/demo/
+COUNT 1
